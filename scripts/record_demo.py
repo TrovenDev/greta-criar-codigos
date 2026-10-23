@@ -49,8 +49,10 @@ with tempfile.TemporaryDirectory(dir=ROOT/'.build') as temp:
             def pause(seconds=2.5):page.wait_for_timeout(seconds*1000)
             def click(selector):
                 el=page.locator(selector).first;el.scroll_into_view_if_needed();box=el.bounding_box()
+                page.evaluate("()=>{const cursor=document.querySelector('.demo-cursor');(document.querySelector('dialog[open]')||document.body).append(cursor)}")
                 page.evaluate("p=>gsap.to('.demo-cursor',{x:p.x,y:p.y,duration:.65,ease:'power2.inOut'})",dict(x=box['x']+box['width']/2,y=box['y']+box['height']/2))
                 pause(.7);el.click();pause(.65)
+            page.add_style_tag(content='dialog::backdrop{clip-path:inset(0 0 104px 0)}')
             caption('Troven Cadastro. Do estoque à Grade Lançar, em um só fluxo.');pause(3)
             page.wait_for_function("!gsap.isTweening('#page > *')")
             # Imagem do README sem os elementos editoriais do vídeo.
