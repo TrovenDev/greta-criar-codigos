@@ -1,0 +1,44 @@
+name: Windows — testes, instalador e release
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python -m pip install -r requirements-build.txt
+      - name: Testar regras e ponte da interface
+        run: python -m unittest discover -s app -p "test_*.py"
+      - name: Validar versão da tag
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        run: |
+          $version = python -c "import runpy; print(runpy.run_path('app/version_info.py')['VERSION'])"
+          if ($env:GITHUB_REF_NAME -ne "v$version") { throw 'A tag deve corresponder a app/version_info.py' }
+      - name: Gerar executável e instalador
+        run: python scripts/build_windows.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Troven-Cadastro-Windows
+          path: |
+            dist/Troven-Cadastro-Instalador-*.exe
+            dist/SHA256SUMS.txt
+      - name: Publicar atualização oficial
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $files = @(Get-ChildItem dist/Troven-Cadastro-Instalador-*.exe | ForEach-Object FullName) + @((Resolve-Path dist/SHA256SUMS.txt).Path)
+          gh release create $env:GITHUB_REF_NAME @files --title "Troven Cadastro $env:GITHUB_REF_NAME" --generate-notes --verify-tag

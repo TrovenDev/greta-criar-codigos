@@ -1,0 +1,58 @@
+TROVEN CADASTRO 9
+
+INSTALAR
+Abra o instalador da versão mais recente e siga o assistente.
+O aplicativo fica disponível no menu Iniciar. O atalho na área de trabalho
+é opcional. Não é necessário instalar Python ou Microsoft Excel.
+Caso o Windows ainda não tenha Microsoft WebView2, mantenha a conexão
+com a internet durante a instalação para preparar esse componente.
+Depois de instalado, o fluxo de cadastro e as animações funcionam localmente.
+
+COMEÇAR
+1. Selecione o Excel de estoque atualizado.
+2. Importe a planilha dos produtos novos e escolha as colunas úteis.
+3. Confira categorias, códigos, pesos e unidades; exporte Grade Lançar.xlsx.
+O tutorial do aplicativo explica cada etapa. F1 também abre o tutorial.
+
+ATUALIZAR SEM PERDER O TRABALHO
+Reservas, regras e o último lote ficam em:
+%LOCALAPPDATA%\Troven\Cadastro\reservas.sqlite3
+O instalador não sobrescreve nem remove essa base.
+Para sair de uma versão portátil anterior, abra Base e continuidade,
+clique em Escolher base anterior e selecione o antigo reservas.sqlite3.
+A base atual recebe uma cópia de segurança antes da importação.
+Use Restaurar lote para continuar o trabalho anterior.
+
+REGRAS IMPORTANTES DO CADASTRO
+A sequência é única para todos os grupos.
+A cadastrar inclui novos modelos e novas variações.
+Moissanite só aceita grupos de moissanite, inclusive na escolha manual.
+Com peso: G. Sem peso: valor 1, PC para anéis/outros ou PR para brincos.
+Os pais ficam no final da grade, únicos por código-base.
+A unidade do pai acompanha as variações: G, PC ou PR.
+No pai: pesogramas = 0, fatconv = 50, peso = 0.
+A exportação mantém as 19 colunas do modelo dmaaa.xlsx.
+
+O filtro muda só a visualização. A coluna Exportar define o arquivo.
+A planilha exportada não cadastra produtos automaticamente no ERP.
+Os arquivos de origem não são alterados. Faça backup da base com o
+aplicativo fechado. Computadores diferentes não compartilham a sequência.
+
+DESINSTALAR
+Use Aplicativos instalados do Windows. Seus dados são preservados na pasta
+acima para reinstalar ou fazer backup depois.
+
+ATUALIZAÇÕES AUTOMÁTICAS
+O sistema consulta as Releases oficiais de TrovenDev/greta-criar-codigos
+ao abrir. Uma nova versão é baixada em segundo plano, conferida por
+SHA-256 e aplicada automaticamente quando você fecha o sistema.
+Sem internet, o cadastro continua disponível normalmente.
+Em Base e continuidade, Verificar agora repete a consulta.
+
+INTERFACE E COMPONENTES
+Identidade visual oficial: https://marca.troven.com.br/
+GSAP: https://gsap.com/standard-license/ (biblioteca distribuída sem alterações).
+Lottie-web: MIT. Fontes Inter e Unbounded: SIL Open Font License.
+Animação Lottie do aplicativo: composição geométrica original da Troven.
+Licenças e metadados estão em _internal/web/vendor e _internal/web/assets.
+Instalador construído com Inno Setup: https://jrsoftware.org/.

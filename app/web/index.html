@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Troven Cadastro</title><link rel="stylesheet" href="styles.css"><script defer src="vendor/gsap.min.js"></script><script defer src="vendor/lottie.min.js"></script><script defer src="app.js"></script></head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <a class="brand" href="#inicio" data-page="inicio" aria-label="Troven início"><img src="assets/troven-horizontal-negativo.svg" alt="troven"></a>
+    <div class="workspace"><span class="workspace-icon">T</span><div>Cadastro de produtos<small>SEU ESPAÇO DE TRABALHO</small></div><span class="online-dot"></span></div>
+    <div class="nav-caption">CADASTRO, DO INÍCIO AO FIM</div>
+    <nav id="navigation">
+      <button data-page="inicio" class="nav-item active"><span data-icon="grid"></span><span>Visão geral</span></button>
+      <button data-page="estoque" class="nav-item"><span class="step-number">01</span><span>Estoque de referência</span><span class="nav-check" id="stock-check"></span></button>
+      <button data-page="produtos" class="nav-item"><span class="step-number">02</span><span>Produtos e códigos</span><span class="nav-count" id="nav-count">0</span></button>
+      <button data-page="cadastro" class="nav-item"><span class="step-number">03</span><span>Conferir e exportar</span></button>
+    </nav>
+    <div class="nav-caption">ORGANIZAÇÃO</div>
+    <button data-page="regras" class="nav-item"><span data-icon="sliders"></span><span>Regras de categoria</span></button>
+    <button data-action="tutorial" class="nav-item"><span data-icon="book"></span><span>Como usar o sistema</span></button>
+    <div class="sidebar-bottom"><div class="local-badge"><span class="online-dot"></span> Funciona no seu computador</div><button data-page="ajustes" class="nav-item"><span data-icon="settings"></span><span>Base e continuidade</span></button><div class="sidebar-version"><span>TROVEN CADASTRO</span><span>9.0</span></div></div>
+  </aside>
+  <main>
+    <header class="topbar"><div class="breadcrumb">Workspace <span>/</span> <strong id="breadcrumb">Visão geral</strong></div><div class="top-actions"><span class="saved-state"><span class="online-dot"></span> Salvo neste computador</span><button class="button small subtle" data-action="tutorial"><span data-icon="help"></span> Tutorial</button><div class="avatar">T</div></div></header>
+    <div class="main-scroll" id="main-scroll"><div id="page" class="page"></div><footer class="page-footer"><span>Feito para organizar o seu próximo lançamento.</span><img src="assets/troven-horizontal-positivo.svg" alt="Troven"></footer></div>
+  </main>
+</div>
+<dialog id="modal"><div class="modal-head"><div><div class="eyebrow" id="modal-eyebrow">TROVEN CADASTRO</div><h2 id="modal-title"></h2></div><button class="icon-button" id="close-modal" aria-label="Fechar"><span data-icon="x"></span></button></div><div class="modal-body" id="modal-body"></div><div class="modal-footer" id="modal-footer"></div></dialog>
+<div id="toasts" class="toasts" aria-live="polite"></div>
+<div class="loading-screen" id="loading"><div id="loading-lottie"></div><strong>Organizando tudo por aqui</strong><span id="loading-label">Conectando com o seu cadastro…</span></div>
+</body></html>
