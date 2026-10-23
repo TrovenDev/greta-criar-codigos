@@ -167,16 +167,26 @@ scripts/              # Build do executável e instalador
 1. Atualize `VERSION` em `app/version_info.py`.
 2. Acrescente as novidades em `app/web/changelog.json`.
 3. Faça commit e push em `main` para gerar um instalador de revisão.
-4. Depois de revisar, envie a tag correspondente, como `v9.0.3`.
+4. Depois de revisar, envie a tag correspondente, como `v9.1.0`.
 5. O GitHub Actions publica o instalador, o SHA-256 e as notas da versão. As instalações detectam a nova Release na próxima abertura.
 
 Um push sem uma nova tag não distribui código aos usuários. Versões já publicadas são preservadas.
 
+## Empresas, descrição e atributos
+
+Em **Empresas e modelos**, personalize o cadastro com faixa etária, estilo, pedra, gênero, tema e novos atributos. Ofereça listas de opções, marque campos obrigatórios e mantenha descrições escritas separadas dos identificadores técnicos.
+
+Importe essas informações da planilha ou preencha produtos individualmente e em lote. Os valores são salvos por modelo e preservados ao restaurar o trabalho. Os modelos compartilham a base e a sequência; não representam estoques independentes.
+
+Escolha **Grade Lançar · padrão ERP**, **Cadastro completo · com atributos** ou crie formatos com cabeçalhos, ordem, origens e valores fixos. Os formatos passam pelas mesmas validações dos produtos e dos pais. A geração de variações segue o fluxo atual de cor e tamanho.
+
+[Leia o guia de empresas e formatos de exportação](docs/modelos-empresa.md).
+
 ## Fotos dos produtos
 
-Em **Produtos e códigos**, **Conferir e exportar** ou **Base e continuidade**, abra **Vincular fotos**, selecione a pasta e ative o vínculo. O padrão é `C:\DevMaster\dados\imagens\produtos`.
+Em **Vincular fotos**, selecione a pasta de **busca** e ative o vínculo. Uma imagem `97089318TOP.jpg` corresponde ao código `97089318TOP`.
 
-Uma imagem `97089318TOP.jpg` corresponde ao código `97089318TOP`. A coluna `aaa_foto` recebe o caminho completo somente quando o arquivo existe. Sem foto, o campo fica vazio. JPG tem prioridade sobre JPEG, PNG e WebP; a busca usa arquivos diretamente na pasta selecionada. O pai usa uma imagem com o seu próprio código. O aplicativo vincula os caminhos sem copiar imagens; a pasta precisa estar disponível no computador do ERP.
+Independentemente da pasta escolhida, a coluna `aaa_foto` recebe **sempre** o destino fixo `C:\DevMaster\dados\imagens\produtos\97089318TOP.jpg`, com o nome real do arquivo encontrado. O aplicativo não copia as imagens. Sem foto, o campo fica vazio. JPG tem prioridade sobre JPEG, PNG e WebP; a busca usa arquivos diretamente na pasta selecionada. O pai usa uma imagem com o seu próprio código.
 
 ## Reiniciar e atualizar
 

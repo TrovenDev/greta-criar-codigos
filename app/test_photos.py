@@ -1,8 +1,8 @@
 import tempfile
 import unittest
-from pathlib import Path
+from pathlib import Path,PureWindowsPath
 from openpyxl import load_workbook
-from photo_links import PhotoLinks
+from photo_links import PhotoLinks,DEFAULT_FOLDER
 from grade_export import grade_rows
 from stock_io import export_xlsx
 
@@ -18,10 +18,11 @@ class PhotoTests(unittest.TestCase):
             links=PhotoLinks(folder);links.configure(photos);summary=links.apply(rows,strict=True,force=True)
             self.assertEqual(summary['found'],1);self.assertEqual(summary['missing'],1)
             grade=grade_rows(rows)
-            self.assertEqual(grade[0][15],str(photos/'97089318TOP.jpg'))
-            self.assertFalse(grade[1][15]);self.assertEqual(grade[-1][15],str(photos/'970893.jpg'))
+            expected=str(PureWindowsPath(DEFAULT_FOLDER)/'97089318TOP.jpg')
+            self.assertEqual(grade[0][15],expected)
+            self.assertFalse(grade[1][15]);self.assertEqual(grade[-1][15],str(PureWindowsPath(DEFAULT_FOLDER)/'970893.jpg'))
             path=folder/'Grade.xlsx';export_xlsx(path,rows,prepared=grade)
-            wb=load_workbook(path);self.assertEqual(wb.active.cell(2,16).value,str(photos/'97089318TOP.jpg'));wb.close()
+            wb=load_workbook(path);self.assertEqual(wb.active.cell(2,16).value,expected);wb.close()
             (photos/'97089318TOP.jpg').unlink();links.apply(rows,force=True)
             self.assertTrue(rows[0]['foto'].endswith('.png'))
             (photos/'97089318TOP.png').unlink();links.apply(rows,force=True)

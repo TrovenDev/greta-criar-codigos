@@ -25,13 +25,13 @@ def grade_rows(records):
         supplier = suppliers[-1] if suppliers else ''
         grams = r['peso']
         kg = float(Decimal(str(grams)) / Decimal(1000))
-        child = [prefix, sequence, r['codigo'], r['produto'], r['referencia'], 'A', supplier,
+        child = [prefix, sequence, r['codigo'], r.get('descricao') or r['produto'], r['referencia'], 'A', supplier,
                  grams, grams, r['unidade'], 'UN', None, '71132000', kg, 'PV', r.get('foto',''), None, base, '002']
         if r['codigo'] in codes:
             raise ValueError(f"Código repetido na grade: {r['codigo']}.")
         codes.add(r['codigo'])
         children.append(child)
-        parent = [prefix, sequence, base, f'{prefix}-{sequence}', model, 'A', supplier,
+        parent = [prefix, sequence, base, r.get('descricao_pai') or f'{prefix}-{sequence}', model, 'A', supplier,
                   0, 50, r['unidade'], 'UN', '001', '71132000', 0, 'PV', r.get('foto_pai') or None, None, None, '002']
         if base in parents and parents[base][4] != model:
             raise ValueError(f'O código pai {base} está associado a referências-base diferentes. Revise a numeração antes de exportar.')

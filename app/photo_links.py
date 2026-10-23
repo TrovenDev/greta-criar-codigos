@@ -1,6 +1,6 @@
 """Vínculo por nome exato do arquivo: código do produto + extensão da foto."""
 import json
-from pathlib import Path
+from pathlib import Path,PureWindowsPath
 from criar_codigos import product_parts
 
 DEFAULT_FOLDER=r'C:\DevMaster\dados\imagens\produtos'
@@ -47,7 +47,7 @@ class PhotoLinks:
         if not files:return '',False
         rank=min(EXTENSIONS[p.suffix.lower()] for p in files)
         best=[p for p in files if EXTENSIONS[p.suffix.lower()]==rank]
-        return (str(best[0].absolute()),False) if len(best)==1 else ('',True)
+        return (str(PureWindowsPath(DEFAULT_FOLDER)/best[0].name),False) if len(best)==1 else ('',True)
 
     def apply(self,rows,strict=False,force=False):
         self.error=''
@@ -70,7 +70,7 @@ class PhotoLinks:
         return self.summary(rows)
 
     def summary(self,rows):
-        return dict(enabled=self.enabled,folder=self.folder,error=self.error,
+        return dict(enabled=self.enabled,folder=self.folder,export_folder=DEFAULT_FOLDER,error=self.error,
                     found=sum(bool(r.get('foto')) for r in rows),
                     missing=sum(bool(r.get('codigo')) and not r.get('foto') for r in rows),
                     parents=len({r['foto_pai'] for r in rows if r.get('foto_pai')}),

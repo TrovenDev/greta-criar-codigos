@@ -17,6 +17,7 @@ from category_rules import stock_patterns
 from updates import UpdateManager
 from release_notes import changelog,mark_seen
 from photo_links import PhotoLinks
+from registration import Registration
 
 
 class DesktopAPI:
@@ -33,6 +34,7 @@ class DesktopAPI:
 
     def _init(self):
         self._catalog = Workflow([], self._home / 'reservas.sqlite3')
+        self._registration=Registration(self._catalog.db)
         self._rows, self._assignments, self._sizes, self._items = [], {}, {}, {}
         self._text = self._source = self._sheet = self._new_source = ''
         self._stamp = None
@@ -55,7 +57,10 @@ class DesktopAPI:
                    'check_updates':lambda p:self._updates.start(), 'update_state':lambda p:self._updates.snapshot(),
                    'changelog':lambda p:changelog(self._home), 'changelog_seen':lambda p:mark_seen(self._home),
                    'choose_photo_folder':self._choose_photo_folder,'photo_settings':self._photo_settings,
-                   'restart_update':self._restart_update}
+                   'restart_update':self._restart_update,
+                   'profile_select':self._profile_select,'profile_save':self._profile_save,
+                   'layout_save':self._layout_save,'layout_select':self._layout_select,
+                   'product_details':self._product_details}
         if action not in actions:
             raise ValueError('Ação não reconhecida.')
         result = actions[action](p)
@@ -63,15 +68,18 @@ class DesktopAPI:
 
     def _state(self, p=None):
         rows = [dict(r, id=i, situacao=situation(r)[0], proximo_passo=situation(r)[1]) for i,r in enumerate(self._rows)]
+        for r in rows:
+            r.update(self._registration.details(self._items.get(r['referencia'],{})))
+            r['cadastro_pendente']=self._registration.missing(r)
         counts = dict(total=len(rows), novos=sum(r['status'] in ('Pronto para reservar','Reservado') for r in rows),
                       existentes=sum(r['status']=='Já cadastrado' for r in rows),
                       pendencias=sum(r['status'] not in VALID for r in rows),
-                      exportar=sum(bool(r.get('exportar')) for r in rows))
+                      exportar=sum(bool(r.get('exportar')) for r in rows),cadastro_pendente=sum(bool(r['cadastro_pendente']) for r in rows))
         return dict(rows=rows, counts=counts, stock=dict(path=self._source, sheet=self._sheet, count=len(self._catalog.records),
                     last=self._catalog.last_number(True), next=self._catalog.last_number()+1),
                     groups=sorted({r['grupo'] for r in self._catalog.records}), rules=self._catalog.rules.all(),
                     learning=self._catalog.rules.learning(), new_source=self._new_source,
-                    has_saved=bool(self._catalog.session().get('rows')), data_dir=str(self._home),update=self._updates.snapshot(),changelog=changelog(self._home),photos=self._photos.summary(self._rows))
+                    has_saved=bool(self._catalog.session().get('rows')), data_dir=str(self._home),update=self._updates.snapshot(),changelog=changelog(self._home),photos=self._photos.summary(self._rows),registration=self._registration.snapshot())
 
     def _dialog(self, save=False, name='', database=False):
         import webview
@@ -115,12 +123,14 @@ class DesktopAPI:
         return dict(name=Path(path).name, sheets=sheets, inspection=self._inspect_new(dict(sheet=sheets[0])))
 
     def _inspect_new(self, p):
-        row, columns, mapping, preview = inspect_sheet(self._pending_new, p['sheet'], p.get('header'))
+        extra=self._registration.import_fields()
+        row, columns, mapping, preview = inspect_sheet(self._pending_new, p['sheet'], p.get('header'),extra)
         return dict(header=row, columns=columns, mapping=mapping,
+                    fields=extra,
                     preview=[[str(v) if v is not None else '' for v in line] for line in preview])
 
     def _import_new(self, p):
-        records, skipped = read_items(self._pending_new, p['sheet'], int(p['header']), p['mapping'])
+        records, skipped = read_items(self._pending_new, p['sheet'], int(p['header']), p['mapping'],self._registration.import_fields())
         items, lines = {}, []
         context = uuid4().hex
         options = {r['grupo'] for r in self._catalog.records}
@@ -129,6 +139,9 @@ class DesktopAPI:
             if ref in items:
                 raise ValueError(f'A referência {ref} aparece mais de uma vez. Remova a duplicação na planilha antes de importar.')
             items[ref] = dict(item, context=context)
+            values=dict(descricao=item.get('cad.descricao',''),atributos={f['id']:item.get('cad.'+f['id'],'') for f in self._registration.profile()['fields']})
+            self._registration.validate_values(values)
+            items[ref]['cadastros']={self._registration.profile()['id']:values}
             raw = normal(item.get('grupo',''))
             found = [g for g in options if normal(g)==raw or normal(g.split('-')[0])==raw]
             gp = found[0] if len(found)==1 else ''
@@ -284,15 +297,15 @@ class DesktopAPI:
 
     def _preview_grade(self, p):
         records = self._export_records()
-        grade = grade_rows(records)
-        return dict(headers=GRADE_HEADERS,rows=grade[:100],total=len(grade),children=len(records),parents=len(grade)-len(records))
+        headers,grade,name=self._registration.export(records)
+        return dict(headers=headers,rows=grade[:100],total=len(grade),children=len(records),parents=len(grade)-len(records),name=name)
 
     def _export(self, p):
         stat = Path(self._source).stat()
         if self._stamp!=(stat.st_mtime_ns,stat.st_size):
             raise ValueError('O estoque foi alterado. Carregue novamente o estoque antes de exportar.')
         records = self._export_records()
-        grade = grade_rows(records)
+        headers,grade,name=self._registration.export(records)
         ext = 'csv' if p.get('csv') else 'xlsx'
         import webview
         path = self._window.create_file_dialog(webview.FileDialog.SAVE,save_filename='Grade Lançar.'+ext,
@@ -312,11 +325,11 @@ class DesktopAPI:
                 r['status']='Reservado'
         self._save()
         if ext=='xlsx':
-            export_xlsx(path,records,prepared=grade)
+            export_xlsx(path,records,prepared=grade,headers=headers)
         else:
             with open(path,'w',newline='',encoding='utf-8-sig') as f:
                 writer=csv.writer(f,delimiter=';')
-                writer.writerow(GRADE_HEADERS)
+                writer.writerow(headers)
                 for row in grade:
                     writer.writerow([str(v).replace('.',',') if isinstance(v,float) else "'"+v if isinstance(v,str) and v.startswith(('=','+','-','@')) else v for v in row])
         return dict(state=self._state(),path=path,children=len(records),parents=len(grade)-len(records))
@@ -338,6 +351,7 @@ class DesktopAPI:
             source.backup(self._catalog.db)
         self._catalog.db.close()
         self._catalog = Workflow([],target)
+        self._registration=Registration(self._catalog.db)
         return self._state()
 
     def _close(self):
@@ -351,7 +365,46 @@ class DesktopAPI:
         for record in records:
             row=source[record['codigo']]
             record.update(foto=row.get('foto',''),foto_pai=row.get('foto_pai',''))
+            record.update(self._registration.details(self._items.get(row['referencia'],{})))
         return records
+
+    def _profile_select(self,p):
+        self._registration.select(p['id'])
+        return self._state()
+
+    def _profile_save(self,p):
+        self._registration.save_profile(p)
+        return self._state()
+
+    def _layout_save(self,p):
+        self._registration.save_layout(p)
+        return self._state()
+
+    def _layout_select(self,p):
+        self._registration.select_layout(p['id'])
+        return self._state()
+
+    def _product_details(self,p):
+        import copy
+        targets=self._selected(p)
+        if p.get('model'):
+            models={(family(r['referencia']),r['grupo']) for r in targets}
+            targets=[r for r in self._rows if (family(r['referencia']),r['grupo']) in models]
+        fields={f['id'] for f in self._registration.profile()['fields']}
+        changes=[]
+        for row in targets:
+            item=copy.deepcopy(self._items.get(row['referencia'],{}))
+            values=copy.deepcopy(self._registration.details(item));replace=bool(p.get('overwrite'))
+            if 'descricao' in p and (replace or not values['descricao']):values['descricao']=str(p['descricao']).strip()
+            for key,value in p.get('atributos',{}).items():
+                if key not in fields:raise ValueError('Atributo não encontrado no modelo ativo.')
+                if replace or not values['atributos'].get(key):values['atributos'][key]=str(value).strip()
+            self._registration.validate_values(values)
+            item.setdefault('cadastros',{})[self._registration.profile()['id']]=values
+            changes.append((row['referencia'],item))
+        for ref,item in changes:self._items[ref]=item
+        self._save()
+        return self._state()
 
     def _choose_photo_folder(self,p):
         import webview

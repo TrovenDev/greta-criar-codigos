@@ -23,7 +23,7 @@ def list_sheets(path):
         book.close()
 
 
-def inspect_sheet(path, sheet_name, header_row=None):
+def inspect_sheet(path, sheet_name, header_row=None,extra_fields=None):
     book = load_workbook(path, read_only=True, data_only=True)
     try:
         sheet = book[sheet_name]
@@ -39,13 +39,17 @@ def inspect_sheet(path, sheet_name, header_row=None):
         mapping = {field: next((i for alias in ALIASES[field] for i, key in enumerate(keys) if key == alias), None) for field in FIELDS}
         if mapping['referencia'] is None:
             mapping['referencia'] = next((i for i, key in enumerate(keys) if key in ('codigo', 'produto', 'descricao', 'nome')), None)
+        for field,label in (extra_fields or {}).items():
+            aliases={header_key(label)}
+            if field=='cad.descricao':aliases.update(('descricao','descricaodoproduto','descricaoescrita'))
+            mapping[field]=next((i for i,key in enumerate(keys) if key in aliases and i not in mapping.values()),None)
         preview = list(sheet.iter_rows(min_row=header_row + 1, max_row=min(header_row + 8, sheet.max_row or header_row + 8), values_only=True))
         return header_row, columns, mapping, preview
     finally:
         book.close()
 
 
-def read_items(path, sheet_name, header_row, mapping):
+def read_items(path, sheet_name, header_row, mapping,extra_fields=None):
     if mapping.get('referencia') is None:
         raise ValueError('Selecione a coluna que contém a referência dos produtos.')
     used = [v for v in mapping.values() if v is not None]
@@ -67,7 +71,7 @@ def read_items(path, sheet_name, header_row, mapping):
                 numeric = weight(raw_weight)
             except ValueError as exc:
                 raise ValueError(f'Linha {line}, referência {ref}: {exc}') from None
-            record = {field: str(get(field) or '').strip() for field in FIELDS if field != 'peso'}
+            record = {field: str(get(field) if get(field) is not None else '').strip() for field in (*FIELDS,*(extra_fields or {})) if field != 'peso'}
             record.update(peso=numeric, linha_origem=line)
             result.append(record)
         if not result:

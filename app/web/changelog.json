@@ -1,5 +1,11 @@
 [
   {
+    "version": "9.1.0",
+    "date": "2026-10-23",
+    "title": "Empresas, atributos e formatos de exportação",
+    "body": "• Modelos por empresa com faixa etária, estilo, pedra, gênero e tema, além de atributos adicionais.\n• Descrição escrita separada do identificador técnico, com edição individual e em lote.\n• Importação de descrição e atributos com mapeamento de colunas.\n• Cadastro completo e formatos personalizados: cabeçalhos, ordem, origem, valores fixos e inclusão dos pais.\n• Campos obrigatórios e opções de lista são conferidos antes de exportar.\n• Fotos: a pasta escolhida só localiza imagens; o caminho exportado é sempre C:\\DevMaster\\dados\\imagens\\produtos\\NOME-DO-ARQUIVO.\n• A geração de variações permanece no fluxo atual de cor e tamanho."
+  },
+  {
     "version": "9.0.3",
     "date": "2026-10-23",
     "title": "Fotos e atualização em um clique",

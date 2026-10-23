@@ -68,13 +68,13 @@ def read_stock(path, sheet_name=None):
         book.close()
 
 
-def export_xlsx(path, records, prepared=None):
+def export_xlsx(path, records, prepared=None,headers=None):
     """Exportador do aplicativo desktop; texto e números tipados, sem macros."""
     book = Workbook()
     sheet = book.active
     from grade_export import GRADE_HEADERS, grade_rows
     sheet.title = 'Planilha 1'
-    sheet.append(list(GRADE_HEADERS))
+    sheet.append(list(headers if headers is not None else GRADE_HEADERS))
     rows = prepared if prepared is not None else grade_rows(records)
     for row in rows:
         sheet.append(row)
@@ -91,9 +91,9 @@ def export_xlsx(path, records, prepared=None):
         for cell in row:
             cell.font = Font(name='Arial', size=11)
             cell.alignment = Alignment(vertical='center', horizontal='right' if cell.column in (8, 9, 14) else 'left')
-        for index in (7, 8):
-            row[index].number_format = '0.000###'
-        row[13].number_format = '0.000000'
+        if headers is None or list(headers)==list(GRADE_HEADERS):
+            for index in (7, 8):row[index].number_format = '0.000###'
+            row[13].number_format = '0.000000'
         if row[0].row > len(records) + 1:
             for cell in row:
                 cell.fill = PatternFill('solid', fgColor='F7F5F1')
@@ -101,6 +101,7 @@ def export_xlsx(path, records, prepared=None):
         cell.fill = PatternFill('solid', fgColor='2B35F0')
         cell.font = Font(name='Arial', size=11, bold=True, color='FFFFFF')
         cell.alignment = Alignment(vertical='center', horizontal='center')
-    sheet.auto_filter.ref = f'A1:S{sheet.max_row}'
+    from openpyxl.utils import get_column_letter
+    sheet.auto_filter.ref = f'A1:{get_column_letter(sheet.max_column)}{sheet.max_row}'
     book.save(path)
     book.close()
