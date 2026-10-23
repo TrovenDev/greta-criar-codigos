@@ -6,6 +6,7 @@ from uuid import uuid4
 from criar_codigos import product_parts
 from grade_export import GRADE_HEADERS,grade_rows
 from stock_io import header_key
+from product_guidance import compatible
 
 DEFAULT_FIELDS=[('faixa_etaria','Faixa etária'),('estilo','Estilo'),('pedra','Pedra'),('genero','Gênero'),('tema','Tema')]
 BASE_SOURCES=[('codigo','Código'),('referencia','Referência'),('descricao','Descrição escrita'),
@@ -112,6 +113,8 @@ class Registration:
             value=details.get('atributos',{}).get(f['id'],'')
             if f['required'] and not value:missing.append(f['label'])
             elif value and f['options'] and value not in f['options']:missing.append(f['label']+' (opção inválida)')
+            if header_key(f['label'])=='pedra' and not compatible(details.get('referencia',''),details.get('grupo',''),dict(tipo=value)):
+                missing.append('Categoria compatível com moissanite')
         return missing
 
     def export(self,records):
@@ -132,7 +135,7 @@ class Registration:
         profile=self.profile();identifier=profile['layout']
         if identifier=='standard':return list(GRADE_HEADERS),grade,'Grade Lançar'
         if identifier=='complete':
-            columns=[dict(header=label,source=source) for source,label in BASE_SOURCES if source!='produto']+[dict(header=f['label'],source='attr.'+f['id']) for f in profile['fields']]
+            columns=[dict(header=label,source=source) for source,label in BASE_SOURCES]+[dict(header=f['label'],source='attr.'+f['id']) for f in profile['fields']]
             layout=dict(name='Cadastro completo',parents=True,columns=columns)
         else:layout=next(l for l in profile['layouts'] if l['id']==identifier)
         children=[];by_parent={}

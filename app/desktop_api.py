@@ -100,7 +100,7 @@ class DesktopAPI:
 
     def _load_stock(self, p):
         path = self._pending_stock
-        records = read_stock(path, p['sheet'])
+        records = read_stock(path, p['sheet'],known_records=self._catalog.all_records())
         self._catalog.records = records
         self._source, self._sheet = path, p['sheet']
         stat = Path(path).stat()
@@ -262,7 +262,7 @@ class DesktopAPI:
         saved = self._catalog.session()
         if not saved.get('rows'):
             raise ValueError('Ainda não há um lote salvo nesta base.')
-        records = read_stock(saved['source'],saved['sheet'])
+        records = read_stock(saved['source'],saved['sheet'],known_records=self._catalog.all_records())
         self._catalog.records = records
         self._source,self._sheet,self._text = saved['source'],saved['sheet'],saved['text']
         stat = Path(self._source).stat()

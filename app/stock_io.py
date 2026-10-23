@@ -13,10 +13,11 @@ def header_key(text):
 
 ALIASES = {
     'codigo': {'codsistema', 'codigosistema', 'codigodosistema', 'codigosistemico', 'aaacodigo', 'codigo', 'codproduto'},
-    'produto': {'produto', 'descricao', 'descricaoproduto', 'aaadescricao', 'nomeproduto'},
+    'produto': {'produto', 'descricao', 'descricaoproduto', 'aaadescricao', 'nomeproduto','identificadortecnico','produtotecnico'},
     'referencia': {'referencia', 'ref', 'referenciadofornecedor', 'codigofornecedor', 'aaacodrefforn', 'referenciafornecedor'},
-    'grupo': {'gp', 'grupo', 'grupoproduto', 'aaagrupo'},
+    'grupo': {'gp', 'grupo', 'grupoproduto', 'aaagrupo','categoriagp'},
     'peso': {'peso', 'pesog', 'pesogramas', 'pesogr', 'aaapesogramas'},
+    'refbase': {'aaarefbase','refbase','sequencia'},
 }
 
 
@@ -24,6 +25,8 @@ def find_layout(sheet):
     for rownum, row in enumerate(sheet.iter_rows(min_row=1, max_row=min(sheet.max_row or 30, 30), values_only=True), 1):
         keys = [header_key(v) for v in row]
         mapping = {name: next((i for i, key in enumerate(keys) if key in aliases), None) for name, aliases in ALIASES.items()}
+        technical=next((i for i,key in enumerate(keys) if key in ('identificadortecnico','produtotecnico')),None)
+        if technical is not None:mapping['produto']=technical
         if all(mapping[k] is not None for k in ('codigo', 'produto', 'referencia', 'grupo')):
             return rownum, mapping
     return None
@@ -37,7 +40,7 @@ def stock_sheets(path):
         with_book.close()
 
 
-def read_stock(path, sheet_name=None):
+def read_stock(path, sheet_name=None,known_records=None):
     book = load_workbook(path, read_only=True, data_only=True)
     try:
         available = [(s, find_layout(s)) for s in book if sheet_name is None or s.title == sheet_name]
@@ -48,6 +51,7 @@ def read_stock(path, sheet_name=None):
             raise ValueError('Há mais de uma aba de estoque. Escolha a aba que deseja utilizar.')
         sheet, (head, mapping) = available[0]
         result = []
+        known={str(r['codigo']).strip().upper():r for r in (known_records or [])}
         for n, row in enumerate(sheet.iter_rows(min_row=head + 1, values_only=True), head + 1):
             def get(key):
                 i = mapping[key]
@@ -58,7 +62,22 @@ def read_stock(path, sheet_name=None):
             if any(not entry[k] for k in ('produto', 'referencia', 'grupo')):
                 raise ValueError(f'Aba {sheet.title}, linha {n}: preencha produto, referência e grupo antes de importar.')
             if not re.fullmatch(r'[A-Za-z0-9]+-\d+(?:\s+.*)?', entry['produto']):
-                raise ValueError(f"Aba {sheet.title}, linha {n}: não reconheço a sequência de {entry['produto']}. Use o formato de produto, como 17-0523 14 W.")
+                entry['descricao']=entry['produto']
+                old=known.get(entry['codigo'].upper())
+                if old and old['referencia'].strip().upper()==entry['referencia'].upper() and old['grupo'].split('-')[0]==entry['grupo'].split('-')[0]:
+                    entry['produto']=old['produto']
+                else:
+                    prefix=entry['grupo'].split('-')[0].upper();raw=str(get('refbase') or '').strip()
+                    code=entry['codigo'].upper()
+                    sequence=next((s for s in (raw,raw.zfill(4)) if raw.isdigit() and code.startswith(prefix+s)),None)
+                    if sequence:
+                        tail=code[len(prefix+sequence):]
+                        words=entry['referencia'].upper().split()
+                        split_tail=(words[-1]+' '+words[1]) if len(words)==3 and words[-1].isdigit() else ''
+                        if split_tail.replace(' ','')==tail:tail=split_tail
+                        entry['produto']=prefix+'-'+sequence+(' '+tail if tail else '')
+                    else:
+                        raise ValueError(f"Aba {sheet.title}, linha {n}: não reconheço a sequência de {entry['produto']}. Inclua Identificador técnico (como 17-0523 14 W) ou aaa_refbase no relatório. Códigos reservados nesta base são reconhecidos automaticamente.")
             entry['peso'] = get('peso')
             result.append(entry)
         if not result:
