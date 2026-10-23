@@ -25,7 +25,9 @@
 
 ## Veja o sistema em ação
 
-Um vídeo gravado com o próprio aplicativo, dados fictícios e legendas em português. Você acompanha a importação, os filtros, a aplicação de categoria, a prévia da grade, a exportação e o changelog. As transições GSAP e as animações Lottie fazem parte da interface real.
+O vídeo está **dentro do aplicativo**: abra **Vídeo de demonstração** no menu lateral ou no tutorial. Ele é instalado junto com o programa e funciona sem internet, com controles de pausa, velocidade e tela cheia.
+
+A gravação usa o próprio aplicativo, dados fictícios e legendas em português. Você acompanha a importação, os filtros, a aplicação de categoria, a prévia da grade, a exportação e o changelog. As transições GSAP e as animações Lottie fazem parte da interface real.
 
 **[▶ Assistir ou baixar o vídeo demonstrativo em MP4](https://github.com/TrovenDev/greta-criar-codigos/releases/download/v9.0.1/Troven-Cadastro-Demonstracao.mp4)**
 

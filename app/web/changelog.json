@@ -1,5 +1,11 @@
 [
   {
+    "version": "9.0.2",
+    "date": "2026-10-23",
+    "title": "Demonstração dentro do sistema",
+    "body": "• O vídeo demonstrativo agora está incluído no próprio aplicativo.\n• Acesse Vídeo de demonstração no menu lateral ou pelo tutorial.\n• Player com pausa, velocidade e tela cheia.\n• O vídeo fica instalado no computador e funciona sem internet.\n• A demonstração usa dados fictícios, legendas em português, GSAP e Lottie."
+  },
+  {
     "version": "9.0.1",
     "date": "2026-10-23",
     "title": "Seu cadastro também na bandeja",

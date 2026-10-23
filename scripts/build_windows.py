@@ -36,6 +36,10 @@ def download(url,dest,expected=None):
 def main():
     p=argparse.ArgumentParser();p.add_argument('--inno');p.add_argument('--skip-freeze',action='store_true');args=p.parse_args()
     TOOLS.mkdir(parents=True,exist_ok=True);DIST.mkdir(exist_ok=True)
+    demo=ROOT/'app/web/media/demo.mp4'
+    demo.parent.mkdir(parents=True,exist_ok=True)
+    download('https://github.com/TrovenDev/greta-criar-codigos/releases/download/v9.0.1/Troven-Cadastro-Demonstracao.mp4',demo,
+             'b3780522e8cb7620473e894cf0a6f5f71605988ab29144d84e15ff0cb1673ecc')
     resource=ROOT/'.build/version.txt'
     numbers=tuple(int(x) for x in VERSION.split('.'))+(0,)
     resource.write_text("VSVersionInfo(ffi=FixedFileInfo(filevers="+repr(numbers)+",prodvers="+repr(numbers)+",mask=0x3f,flags=0x0,OS=0x40004,fileType=0x1,subtype=0x0,date=(0,0)),kids=[StringFileInfo([StringTable('041604B0',[StringStruct('CompanyName','Troven'),StringStruct('FileDescription','Troven Cadastro'),StringStruct('FileVersion',"+repr(VERSION)+"),StringStruct('ProductVersion',"+repr(VERSION)+"),StringStruct('ProductName','Troven Cadastro'),StringStruct('OriginalFilename','Troven Cadastro.exe')])]),VarFileInfo([VarStruct('Translation',[1046,1200])])])",encoding='utf-8')

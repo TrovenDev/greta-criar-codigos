@@ -54,6 +54,8 @@ Fechar ou minimizar mantém o Troven na bandeja do Windows.
 Clique no ícone para reabrir. Com o botão direito, escolha Abrir ou Sair.
 A seção Novidades mantém o histórico das versões disponível offline.
 Depois de atualizar, o changelog aparece automaticamente na primeira abertura.
+O menu Vídeo de demonstração abre o player dentro do sistema.
+O vídeo é instalado com o aplicativo e funciona sem internet.
 
 INTERFACE E COMPONENTES
 Identidade visual oficial: https://marca.troven.com.br/
