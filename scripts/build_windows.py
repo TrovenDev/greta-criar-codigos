@@ -4,6 +4,7 @@ import hashlib
 import os
 from pathlib import Path
 import runpy
+import shutil
 import subprocess
 import sys
 import urllib.request
@@ -24,6 +25,10 @@ def download(url,dest,expected=None):
             dest.write_bytes(response.read())
     if expected and hashlib.sha256(dest.read_bytes()).hexdigest()!=expected:
         raise RuntimeError('Integridade inválida: '+dest.name)
+    if expected:
+        # Hash de uma distribuição cuja assinatura oficial foi conferida.
+        # Evita depender de servidores de revogação durante builds isolados.
+        return
     command="$s=Get-AuthenticodeSignature -LiteralPath '"+str(dest).replace("'","''")+"'; if($s.Status -ne 'Valid'){throw 'Assinatura do componente inválida'}"
     run(['powershell.exe','-NoProfile','-NonInteractive','-Command',command])
 
@@ -43,7 +48,9 @@ def main():
         for module in ('numpy','pandas','PIL','lxml','matplotlib','PyQt5','PyQt6','PySide2','PySide6','scipy','playwright'):
             command+=['--exclude-module',module]
         run(command+[ROOT/'app/desktop.py'])
-    download('https://go.microsoft.com/fwlink/p/?LinkId=2124703',TOOLS/'MicrosoftEdgeWebview2Setup.exe')
+    bootstrap=TOOLS/'MicrosoftEdgeWebview2Setup.exe'
+    shutil.copy2(ROOT/'installer/vendor/webview2-bootstrapper.bin',bootstrap)
+    download('',bootstrap,'f414de01c4680f0bb0694d1ea7803c6968f3a81bf6bad01b89bfc65dce14c2a2')
     if args.inno:
         compiler=Path(args.inno)
     else:
