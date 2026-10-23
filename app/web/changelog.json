@@ -1,0 +1,14 @@
+[
+  {
+    "version": "9.0.1",
+    "date": "2026-10-23",
+    "title": "Seu cadastro também na bandeja",
+    "body": "NOVIDADES\n• Fechar ou minimizar mantém o Troven na bandeja do Windows.\n• Clique no ícone para reabrir. No botão direito, escolha Abrir ou Sair do Troven Cadastro.\n• A seção Novidades reúne o histórico das versões, inclusive sem internet.\n• Depois de atualizar, as novidades da versão aparecem na primeira abertura.\n\nATUALIZAÇÕES\n• As notas da versão são recebidas junto da publicação oficial do GitHub.\n• Atualizações são aplicadas ao escolher Sair do Troven Cadastro na bandeja.\n• Encerrar a sessão do Windows continua encerrando o aplicativo normalmente.\n\nDOCUMENTAÇÃO\n• README renovado e vídeo demonstrativo do fluxo com GSAP e Lottie."
+  },
+  {
+    "version": "9.0.0",
+    "date": "2026-10-23",
+    "title": "Uma nova experiência Troven",
+    "body": "• Interface web local com identidade Troven, layout responsivo e rolagem estilizada.\n• Transições com GSAP e animações Lottie incluídas no aplicativo.\n• Filtros para novos modelos, novas variações, já cadastrados e pendências.\n• Categorias em lote, bloqueio de grupos incompatíveis com moissanite e tutorial integrado.\n• Exportação Grade Lançar com 19 colunas, pais únicos e unidades G, PC ou PR.\n• Instalador Windows e atualizações automáticas pelo GitHub Releases."
+  }
+]

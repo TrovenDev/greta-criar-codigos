@@ -1,4 +1,4 @@
-TROVEN CADASTRO 9
+TROVEN CADASTRO
 
 INSTALAR
 Abra o instalador da versão mais recente e siga o assistente.
@@ -45,9 +45,15 @@ acima para reinstalar ou fazer backup depois.
 ATUALIZAÇÕES AUTOMÁTICAS
 O sistema consulta as Releases oficiais de TrovenDev/greta-criar-codigos
 ao abrir. Uma nova versão é baixada em segundo plano, conferida por
-SHA-256 e aplicada automaticamente quando você fecha o sistema.
+SHA-256 e aplicada ao escolher Sair do Troven Cadastro na bandeja.
 Sem internet, o cadastro continua disponível normalmente.
 Em Base e continuidade, Verificar agora repete a consulta.
+
+BANDEJA E NOVIDADES
+Fechar ou minimizar mantém o Troven na bandeja do Windows.
+Clique no ícone para reabrir. Com o botão direito, escolha Abrir ou Sair.
+A seção Novidades mantém o histórico das versões disponível offline.
+Depois de atualizar, o changelog aparece automaticamente na primeira abertura.
 
 INTERFACE E COMPONENTES
 Identidade visual oficial: https://marca.troven.com.br/

@@ -19,3 +19,5 @@ __pycache__/
 *.pem
 tmp*/
 app/base.json
+*.mp4
+*.webm

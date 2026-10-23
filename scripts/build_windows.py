@@ -1,6 +1,7 @@
 """Build reproduzível do aplicativo e do instalador. Execute no Windows."""
 import argparse
 import hashlib
+import json
 import os
 from pathlib import Path
 import runpy
@@ -64,6 +65,10 @@ def main():
     output=DIST/f'Troven-Cadastro-Instalador-v{VERSION}.exe'
     with output.open('rb') as f:digest=hashlib.file_digest(f,'sha256').hexdigest()
     (DIST/'SHA256SUMS.txt').write_text(digest+'  '+output.name+'\n',encoding='utf-8')
+    history=json.loads((ROOT/'app/web/changelog.json').read_text(encoding='utf-8'))
+    note=next((n for n in history if n['version']==VERSION),None)
+    if not note:raise RuntimeError('Inclua o changelog da versão antes de publicar.')
+    (DIST/'RELEASE_NOTES.md').write_text(note['title']+'\n\n'+note['body']+'\n',encoding='utf-8')
     print('INSTALADOR:',output,flush=True)
 
 if __name__=='__main__':main()

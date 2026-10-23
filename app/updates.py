@@ -55,6 +55,8 @@ class UpdateManager:
         try:
             with self._open(f'https://api.github.com/repos/{REPOSITORY}/releases/latest') as response:
                 release=json.loads(response.read(2_000_000))
+            if not release.get('draft') and not release.get('prerelease'):
+                self._cache_notes(release)
             if release.get('draft') or release.get('prerelease') or version_tuple(release.get('tag_name'))<=version_tuple(VERSION):
                 self._set(status='current',message='Você já está na versão mais recente.')
                 return
@@ -100,11 +102,25 @@ class UpdateManager:
             part.replace(target)
             pending=dict(file=target.name,sha256=expected,version=release['tag_name'])
             (self._folder/'pending.json').write_text(json.dumps(pending),encoding='utf-8')
-            self._set(status='ready',available=release['tag_name'],message='Atualização pronta. Será instalada automaticamente ao fechar o sistema.')
+            self._set(status='ready',available=release['tag_name'],message='Atualização pronta. Na bandeja, escolha Sair do Troven Cadastro para instalar.')
         except urllib.error.HTTPError as exc:
             self._set(status='current' if exc.code==404 else 'error',message='Nenhuma atualização publicada ainda.' if exc.code==404 else 'Não foi possível consultar atualizações agora. Seu cadastro continua funcionando.')
         except Exception as exc:
             self._set(status='error',message='Atualização indisponível no momento: '+str(exc))
+
+    def _cache_notes(self,release):
+        self._folder.mkdir(parents=True,exist_ok=True)
+        path=self._folder/'changelog.json'
+        try:notes=json.loads(path.read_text(encoding='utf-8'))
+        except (OSError,ValueError):notes=[]
+        version=str(release.get('tag_name','')).lstrip('v')
+        if version_tuple(version)==(0,0,0) or not release.get('body'):return
+        notes=[n for n in notes if isinstance(n,dict) and n.get('version')!=version]
+        notes.append(dict(version=version,title=release.get('name') or 'Novidades da versão '+version,
+                          date=str(release.get('published_at',''))[:10],body=release['body'],url=release.get('html_url','')))
+        temporary=path.with_suffix('.tmp')
+        temporary.write_text(json.dumps(notes,ensure_ascii=False),encoding='utf-8')
+        temporary.replace(path)
 
     def install_on_exit(self):
         if self._launched or not getattr(sys,'frozen',False):

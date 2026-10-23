@@ -43,4 +43,4 @@ jobs:
           $files = @(Get-ChildItem dist/Troven-Cadastro-Instalador-*.exe | ForEach-Object FullName) + @((Resolve-Path dist/SHA256SUMS.txt).Path)
           gh release view $env:GITHUB_REF_NAME *> $null
           if ($LASTEXITCODE -eq 0) { Write-Output 'Esta versão já foi publicada; os instaladores existentes serão preservados.'; exit 0 }
-          gh release create $env:GITHUB_REF_NAME @files --title "Troven Cadastro $env:GITHUB_REF_NAME" --generate-notes --verify-tag
+          gh release create $env:GITHUB_REF_NAME @files --title "Troven Cadastro $env:GITHUB_REF_NAME" --notes-file dist/RELEASE_NOTES.md --verify-tag

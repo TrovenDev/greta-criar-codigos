@@ -15,6 +15,7 @@ from product_guidance import situation, compatible, VALID
 from grade_export import grade_rows, GRADE_HEADERS
 from category_rules import stock_patterns
 from updates import UpdateManager
+from release_notes import changelog,mark_seen
 
 
 class DesktopAPI:
@@ -47,7 +48,8 @@ class DesktopAPI:
                    'include_existing':self._include_existing, 'save':self._save_action, 'restore':self._restore,
                    'rule_save':self._rule_save, 'rule_remove':self._rule_remove, 'learning':self._learning,
                    'preview_grade':self._preview_grade, 'export':self._export, 'import_database':self._import_database,
-                   'check_updates':lambda p:self._updates.start(), 'update_state':lambda p:self._updates.snapshot()}
+                   'check_updates':lambda p:self._updates.start(), 'update_state':lambda p:self._updates.snapshot(),
+                   'changelog':lambda p:changelog(self._home), 'changelog_seen':lambda p:mark_seen(self._home)}
         if action not in actions:
             raise ValueError('Ação não reconhecida.')
         result = actions[action](p)
@@ -63,7 +65,7 @@ class DesktopAPI:
                     last=self._catalog.last_number(True), next=self._catalog.last_number()+1),
                     groups=sorted({r['grupo'] for r in self._catalog.records}), rules=self._catalog.rules.all(),
                     learning=self._catalog.rules.learning(), new_source=self._new_source,
-                    has_saved=bool(self._catalog.session().get('rows')), data_dir=str(self._home),update=self._updates.snapshot())
+                    has_saved=bool(self._catalog.session().get('rows')), data_dir=str(self._home),update=self._updates.snapshot(),changelog=changelog(self._home))
 
     def _dialog(self, save=False, name='', database=False):
         import webview
