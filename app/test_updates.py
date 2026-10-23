@@ -69,6 +69,18 @@ class UpdateTests(unittest.TestCase):
         with patch.object(updates.sys,'frozen',True,create=True),patch.object(updates.subprocess,'Popen') as launch:
             self.assertFalse(self.manager.install_on_exit());launch.assert_not_called()
 
+    def test_restart_reopens_only_after_successful_install(self):
+        with patch.object(self.manager,'_open',side_effect=self.responses):self.manager.check()
+        executable=str(self.home/"Troven's program"/'Troven Cadastro.exe')
+        with patch.object(updates.sys,'frozen',True,create=True),patch.object(updates.sys,'executable',executable),patch.object(updates.subprocess,'Popen') as launch:
+            self.assertTrue(self.manager.install_on_exit(restart=True))
+            import base64
+            script=base64.b64decode(launch.call_args.args[0][-1]).decode('utf-16le')
+            self.assertIn('if ($result.ExitCode -eq 0)',script)
+            self.assertIn(executable.replace("'","''"),script)
+            self.assertLess(script.index('-PassThru -Wait'),script.index('if ($result.ExitCode'))
+            self.assertIn('Wait-Process -Id',script)
+
     def test_versions(self):
         self.assertGreater(version_tuple('v10.0.0'),version_tuple('9.10.0'))
         self.assertEqual(version_tuple('v9.0.0-beta'),(0,0,0))

@@ -39,6 +39,10 @@ def main():
         from tray import TrayController
         tray=TrayController(window,base/'assets/troven.ico')
         window.events.shown+=tray.start
+        def restart_exit():
+            from System import Action
+            window.native.BeginInvoke(Action(tray.quit))
+        api._exit_callback=restart_exit
     if getattr(sys,'frozen',False):
         api._updates.start()
     try:
@@ -48,7 +52,7 @@ def main():
     finally:
         if tray:tray.stop()
         api._close()
-        api._updates.install_on_exit()
+        api._updates.install_on_exit(restart=api._restart_requested)
         if mutex:
             kernel.CloseHandle.argtypes=(wintypes.HANDLE,)
             kernel.CloseHandle(mutex)

@@ -16,6 +16,7 @@ from grade_export import grade_rows, GRADE_HEADERS
 from category_rules import stock_patterns
 from updates import UpdateManager
 from release_notes import changelog,mark_seen
+from photo_links import PhotoLinks
 
 
 class DesktopAPI:
@@ -25,6 +26,9 @@ class DesktopAPI:
         self._home = Path(data_dir or os.environ.get('TROVEN_DATA_DIR') or Path(os.environ.get('LOCALAPPDATA', Path.home())) / 'Troven' / 'Cadastro')
         self._home.mkdir(parents=True, exist_ok=True)
         self._updates = UpdateManager(self._home)
+        self._photos = PhotoLinks(self._home)
+        self._restart_requested=False
+        self._exit_callback=None
         self._pool.submit(self._init).result()
 
     def _init(self):
@@ -49,7 +53,9 @@ class DesktopAPI:
                    'rule_save':self._rule_save, 'rule_remove':self._rule_remove, 'learning':self._learning,
                    'preview_grade':self._preview_grade, 'export':self._export, 'import_database':self._import_database,
                    'check_updates':lambda p:self._updates.start(), 'update_state':lambda p:self._updates.snapshot(),
-                   'changelog':lambda p:changelog(self._home), 'changelog_seen':lambda p:mark_seen(self._home)}
+                   'changelog':lambda p:changelog(self._home), 'changelog_seen':lambda p:mark_seen(self._home),
+                   'choose_photo_folder':self._choose_photo_folder,'photo_settings':self._photo_settings,
+                   'restart_update':self._restart_update}
         if action not in actions:
             raise ValueError('Ação não reconhecida.')
         result = actions[action](p)
@@ -65,7 +71,7 @@ class DesktopAPI:
                     last=self._catalog.last_number(True), next=self._catalog.last_number()+1),
                     groups=sorted({r['grupo'] for r in self._catalog.records}), rules=self._catalog.rules.all(),
                     learning=self._catalog.rules.learning(), new_source=self._new_source,
-                    has_saved=bool(self._catalog.session().get('rows')), data_dir=str(self._home),update=self._updates.snapshot(),changelog=changelog(self._home))
+                    has_saved=bool(self._catalog.session().get('rows')), data_dir=str(self._home),update=self._updates.snapshot(),changelog=changelog(self._home),photos=self._photos.summary(self._rows))
 
     def _dialog(self, save=False, name='', database=False):
         import webview
@@ -231,6 +237,7 @@ class DesktopAPI:
         return self._state()
 
     def _save(self):
+        self._photos.apply(self._rows)
         self._catalog.save_session(self._rows,self._source,self._sheet,self._text,assignments=self._assignments,
                                   sizes=self._sizes,items=self._items,new_source=self._new_source)
 
@@ -258,6 +265,7 @@ class DesktopAPI:
                     if k in previous:
                         r[k] = previous[k]
                 r['exportar'] = bool(previous.get('exportar')) and r['status'] in VALID
+        self._photos.apply(self._rows,force=True)
         return self._state()
 
     def _rule_save(self, p):
@@ -275,7 +283,7 @@ class DesktopAPI:
         return self._reanalyze() if self._rows else self._state()
 
     def _preview_grade(self, p):
-        records = self._catalog.export_rows(self._rows)
+        records = self._export_records()
         grade = grade_rows(records)
         return dict(headers=GRADE_HEADERS,rows=grade[:100],total=len(grade),children=len(records),parents=len(grade)-len(records))
 
@@ -283,7 +291,7 @@ class DesktopAPI:
         stat = Path(self._source).stat()
         if self._stamp!=(stat.st_mtime_ns,stat.st_size):
             raise ValueError('O estoque foi alterado. Carregue novamente o estoque antes de exportar.')
-        records = self._catalog.export_rows(self._rows)
+        records = self._export_records()
         grade = grade_rows(records)
         ext = 'csv' if p.get('csv') else 'xlsx'
         import webview
@@ -335,3 +343,36 @@ class DesktopAPI:
     def _close(self):
         self._pool.submit(self._catalog.db.close).result()
         self._pool.shutdown(wait=True)
+
+    def _export_records(self):
+        self._photos.apply(self._rows,strict=True,force=True)
+        records=self._catalog.export_rows(self._rows)
+        source={r['codigo']:r for r in self._rows if r.get('exportar')}
+        for record in records:
+            row=source[record['codigo']]
+            record.update(foto=row.get('foto',''),foto_pai=row.get('foto_pai',''))
+        return records
+
+    def _choose_photo_folder(self,p):
+        import webview
+        selected=self._window.create_file_dialog(webview.FileDialog.FOLDER,directory=self._photos.folder)
+        return str(selected[0] if isinstance(selected,(tuple,list)) else selected) if selected else None
+
+    def _photo_settings(self,p):
+        self._photos.configure(p.get('folder') or self._photos.folder,p.get('enabled',True))
+        self._photos.apply(self._rows,strict=True,force=True)
+        if self._source or self._rows:self._save()
+        return self._state()
+
+    def _restart_update(self,p):
+        if not getattr(sys,'frozen',False) or not self._exit_callback:
+            raise ValueError('Reiniciar para atualizar está disponível no aplicativo instalado.')
+        if not self._updates.pending_installer():
+            raise ValueError('Ainda não há uma atualização baixada e verificada. Use Verificar agora e aguarde o download.')
+        if self._source or self._rows:
+            self._save()
+        if self._restart_requested:return dict(restarting=True)
+        self._restart_requested=True
+        import threading
+        threading.Timer(.5,self._exit_callback).start()
+        return dict(restarting=True)

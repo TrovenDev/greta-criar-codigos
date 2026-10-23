@@ -167,10 +167,20 @@ scripts/              # Build do executável e instalador
 1. Atualize `VERSION` em `app/version_info.py`.
 2. Acrescente as novidades em `app/web/changelog.json`.
 3. Faça commit e push em `main` para gerar um instalador de revisão.
-4. Depois de revisar, envie a tag correspondente, como `v9.0.2`.
+4. Depois de revisar, envie a tag correspondente, como `v9.0.3`.
 5. O GitHub Actions publica o instalador, o SHA-256 e as notas da versão. As instalações detectam a nova Release na próxima abertura.
 
 Um push sem uma nova tag não distribui código aos usuários. Versões já publicadas são preservadas.
+
+## Fotos dos produtos
+
+Em **Produtos e códigos**, **Conferir e exportar** ou **Base e continuidade**, abra **Vincular fotos**, selecione a pasta e ative o vínculo. O padrão é `C:\DevMaster\dados\imagens\produtos`.
+
+Uma imagem `97089318TOP.jpg` corresponde ao código `97089318TOP`. A coluna `aaa_foto` recebe o caminho completo somente quando o arquivo existe. Sem foto, o campo fica vazio. JPG tem prioridade sobre JPEG, PNG e WebP; a busca usa arquivos diretamente na pasta selecionada. O pai usa uma imagem com o seu próprio código. O aplicativo vincula os caminhos sem copiar imagens; a pasta precisa estar disponível no computador do ERP.
+
+## Reiniciar e atualizar
+
+Assim que o download e a verificação SHA-256 terminarem, o botão **Reiniciar e atualizar** aparece em qualquer tela e em **Base e continuidade**. Ao confirmar, o aplicativo salva o lote, encerra por completo, instala a versão e abre novamente. A instalação mantém a base e as preferências. Se a instalação falhar, o aplicativo não é reaberto automaticamente; consulte `updates/install.log` na pasta de dados.
 
 ## Identidade e componentes
 

@@ -102,7 +102,7 @@ class UpdateManager:
             part.replace(target)
             pending=dict(file=target.name,sha256=expected,version=release['tag_name'])
             (self._folder/'pending.json').write_text(json.dumps(pending),encoding='utf-8')
-            self._set(status='ready',available=release['tag_name'],message='Atualização pronta. Na bandeja, escolha Sair do Troven Cadastro para instalar.')
+            self._set(status='ready',available=release['tag_name'],message='Atualização pronta. Clique em Reiniciar e atualizar para instalar e abrir novamente.')
         except urllib.error.HTTPError as exc:
             self._set(status='current' if exc.code==404 else 'error',message='Nenhuma atualização publicada ainda.' if exc.code==404 else 'Não foi possível consultar atualizações agora. Seu cadastro continua funcionando.')
         except Exception as exc:
@@ -122,9 +122,7 @@ class UpdateManager:
         temporary.write_text(json.dumps(notes,ensure_ascii=False),encoding='utf-8')
         temporary.replace(path)
 
-    def install_on_exit(self):
-        if self._launched or not getattr(sys,'frozen',False):
-            return False
+    def pending_installer(self):
         try:
             pending=json.loads((self._folder/'pending.json').read_text(encoding='utf-8'))
             if version_tuple(pending['version'])<=version_tuple(VERSION):
@@ -136,10 +134,21 @@ class UpdateManager:
                 valid=hashlib.file_digest(file,'sha256').hexdigest()==pending['sha256']
             if not valid:
                 return False
+            return installer
+        except (OSError,ValueError,KeyError,TypeError):
+            return None
+
+    def install_on_exit(self,restart=False):
+        if self._launched or not getattr(sys,'frozen',False):
+            return False
+        installer=self.pending_installer()
+        if not installer:return False
+        try:
             quote=lambda s:"'"+str(s).replace("'","''")+"'"
             install_dir=Path(sys.executable).parent
             args=['/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/DIR="'+str(install_dir)+'"','/LOG="'+str(self._folder/'install.log')+'"']
-            script=f"Wait-Process -Id {os.getpid()} -ErrorAction SilentlyContinue; $result=Start-Process -FilePath {quote(installer)} -ArgumentList @({','.join(quote(a) for a in args)}) -WindowStyle Hidden -PassThru -Wait; exit $result.ExitCode"
+            reopen=f"if ($result.ExitCode -eq 0) {{ Start-Process -FilePath {quote(sys.executable)} -WorkingDirectory {quote(install_dir)} }}; " if restart else ''
+            script=f"Wait-Process -Id {os.getpid()} -ErrorAction SilentlyContinue; $result=Start-Process -FilePath {quote(installer)} -ArgumentList @({','.join(quote(a) for a in args)}) -WindowStyle Hidden -PassThru -Wait; {reopen}exit $result.ExitCode"
             encoded=base64.b64encode(script.encode('utf-16le')).decode('ascii')
             subprocess.Popen(['powershell.exe','-NoProfile','-NonInteractive','-WindowStyle','Hidden','-EncodedCommand',encoded],creationflags=0x08000000,close_fds=True)
             self._launched=True

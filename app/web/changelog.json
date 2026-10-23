@@ -1,5 +1,11 @@
 [
   {
+    "version": "9.0.3",
+    "date": "2026-10-23",
+    "title": "Fotos e atualização em um clique",
+    "body": "• Botão Reiniciar e atualizar em qualquer tela quando a versão estiver baixada e verificada.\n• O lote é salvo antes de encerrar e o aplicativo abre novamente após a instalação.\n• Vincule fotos por código, com pasta configurável e busca em lote.\n• A Grade Lançar recebe o caminho completo da imagem na coluna aaa_foto.\n• Produtos sem foto ficam com o campo vazio; os pais usam imagens do próprio código."
+  },
+  {
     "version": "9.0.2",
     "date": "2026-10-23",
     "title": "Demonstração dentro do sistema",
