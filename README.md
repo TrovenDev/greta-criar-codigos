@@ -127,6 +127,22 @@ python scripts/build_windows.py
 
 O build gera o instalador, `SHA256SUMS.txt` e `RELEASE_NOTES.md` em `dist/`. Testes que dependem das planilhas originais são ignorados quando elas não estão disponíveis: arquivos reais de estoque não são publicados.
 
+### Recriar o vídeo
+
+A gravação pode ser reproduzida com `scripts/record_demo.py`. Ela usa o Microsoft Edge, o fluxo real do aplicativo, legendas, um cursor animado por GSAP e uma base temporária com dados fictícios.
+
+```powershell
+python -m pip install -r requirements-demo.txt
+python -m playwright install ffmpeg
+python scripts/record_demo.py
+```
+
+O WebM é salvo em `.build/demo/`; a imagem do README, em `docs/`. Para gerar MP4 com FFmpeg instalado:
+
+```powershell
+ffmpeg -i .build/demo/Troven-Cadastro-Demonstracao.webm -c:v libx264 -crf 21 -pix_fmt yuv420p -movflags +faststart dist/Troven-Cadastro-Demonstracao.mp4
+```
+
 ### Estrutura
 
 ```text
