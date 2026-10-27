@@ -17,8 +17,8 @@ LEGACY_COLUMNS=[('aaa_codigo','codigo',''),('aaa_descricao','erp.aaa_descricao',
     ('aaa_integracao','fixed','001'),('aaa_foto','erp.aaa_foto',''),('aaa_pesogramas','erp.aaa_pesogramas',''),
     ('aaa_fatconv','erp.aaa_fatconv',''),('aaa_um2','erp.aaa_um2',''),('aaa_peso','erp.aaa_peso',''),('aaa_obs','obs','')]
 DEFAULT_LAYOUTS=[
-    dict(id='standard',name='Grade Lançar · padrão ERP',parents=True,columns=[dict(header=h,source='erp.'+h,value='') for h in GRADE_HEADERS]),
-    dict(id='legacy',name='Grade Lançar · formato antigo',parents=False,columns=[dict(header=h,source=s,value=v) for h,s,v in LEGACY_COLUMNS]),
+    dict(id='standard',name='Grade TAM e COR',parents=True,columns=[dict(header=h,source='erp.'+h,value='') for h in GRADE_HEADERS]),
+    dict(id='legacy',name='Configurador 01',parents=False,columns=[dict(header=h,source=s,value=v) for h,s,v in LEGACY_COLUMNS]),
 ]
 
 

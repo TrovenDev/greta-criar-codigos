@@ -75,7 +75,7 @@ class GradeTests(unittest.TestCase):
         registration.select_layout('legacy')
         headers, rows, name = registration.export(records)
         self.assertEqual(len(headers), 23)
-        self.assertEqual(name, 'Grade Lançar · formato antigo')
+        self.assertEqual(name, 'Configurador 01')
         self.assertEqual(rows[0][:17], ['47095112W', '47-0951 12 W', 'PV', '01', 'PC', '47', '0951', '', '', 'A',
                                         '470951', '12', 'W', '71132000', '23', 'AR38850-MRS01-F23 W', '001'])
         self.assertEqual(rows[0][17:22], ['', 1, 1, 'UN', 0.001])

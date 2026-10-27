@@ -174,7 +174,7 @@ Um push sem uma nova tag não distribui código aos usuários. Versões já publ
 
 ## Formatos de exportação
 
-Em **Formatos de exportação**, escolha como cada coluna da Grade Lançar será escrita. Os formatos prontos são **Grade Lançar · padrão ERP** (com pais) e **Grade Lançar · formato antigo** (somente variações, com tamanho, cor e categoria simplificada). Ambos podem ser renomeados.
+Em **Formatos de exportação**, escolha como cada coluna da Grade Lançar será escrita. Os formatos prontos são **Grade TAM e COR** (com pais) e **Configurador 01** (somente variações, com tamanho, cor e categoria simplificada). Ambos podem ser renomeados.
 
 Crie novos formatos com nomes de coluna, ordem, origens e valores fixos. Os formatos passam pelas mesmas validações dos produtos e dos pais, e a prévia mostra o resultado antes de salvar.
 
