@@ -58,9 +58,7 @@ class DesktopAPI:
                    'changelog':lambda p:changelog(self._home), 'changelog_seen':lambda p:mark_seen(self._home),
                    'choose_photo_folder':self._choose_photo_folder,'photo_settings':self._photo_settings,
                    'restart_update':self._restart_update,
-                   'profile_select':self._profile_select,'profile_save':self._profile_save,
-                   'layout_save':self._layout_save,'layout_select':self._layout_select,
-                   'product_details':self._product_details}
+                   'layout_save':self._layout_save,'layout_select':self._layout_select}
         if action not in actions:
             raise ValueError('Ação não reconhecida.')
         result = actions[action](p)
@@ -68,13 +66,10 @@ class DesktopAPI:
 
     def _state(self, p=None):
         rows = [dict(r, id=i, situacao=situation(r)[0], proximo_passo=situation(r)[1]) for i,r in enumerate(self._rows)]
-        for r in rows:
-            r.update(self._registration.details(self._items.get(r['referencia'],{})))
-            r['cadastro_pendente']=self._registration.missing(r)
         counts = dict(total=len(rows), novos=sum(r['status'] in ('Pronto para reservar','Reservado') for r in rows),
                       existentes=sum(r['status']=='Já cadastrado' for r in rows),
                       pendencias=sum(r['status'] not in VALID for r in rows),
-                      exportar=sum(bool(r.get('exportar')) for r in rows),cadastro_pendente=sum(bool(r['cadastro_pendente']) for r in rows))
+                      exportar=sum(bool(r.get('exportar')) for r in rows))
         return dict(rows=rows, counts=counts, stock=dict(path=self._source, sheet=self._sheet, count=len(self._catalog.records),
                     last=self._catalog.last_number(True), next=self._catalog.last_number()+1),
                     groups=sorted({r['grupo'] for r in self._catalog.records}), rules=self._catalog.rules.all(),
@@ -123,14 +118,12 @@ class DesktopAPI:
         return dict(name=Path(path).name, sheets=sheets, inspection=self._inspect_new(dict(sheet=sheets[0])))
 
     def _inspect_new(self, p):
-        extra=self._registration.import_fields()
-        row, columns, mapping, preview = inspect_sheet(self._pending_new, p['sheet'], p.get('header'),extra)
+        row, columns, mapping, preview = inspect_sheet(self._pending_new, p['sheet'], p.get('header'))
         return dict(header=row, columns=columns, mapping=mapping,
-                    fields=extra,
                     preview=[[str(v) if v is not None else '' for v in line] for line in preview])
 
     def _import_new(self, p):
-        records, skipped = read_items(self._pending_new, p['sheet'], int(p['header']), p['mapping'],self._registration.import_fields())
+        records, skipped = read_items(self._pending_new, p['sheet'], int(p['header']), p['mapping'])
         items, lines = {}, []
         context = uuid4().hex
         options = {r['grupo'] for r in self._catalog.records}
@@ -139,9 +132,6 @@ class DesktopAPI:
             if ref in items:
                 raise ValueError(f'A referência {ref} aparece mais de uma vez. Remova a duplicação na planilha antes de importar.')
             items[ref] = dict(item, context=context)
-            values=dict(descricao=item.get('cad.descricao',''),atributos={f['id']:item.get('cad.'+f['id'],'') for f in self._registration.profile()['fields']})
-            self._registration.validate_values(values)
-            items[ref]['cadastros']={self._registration.profile()['id']:values}
             raw = normal(item.get('grupo',''))
             found = [g for g in options if normal(g)==raw or normal(g.split('-')[0])==raw]
             gp = found[0] if len(found)==1 else ''
@@ -365,16 +355,7 @@ class DesktopAPI:
         for record in records:
             row=source[record['codigo']]
             record.update(foto=row.get('foto',''),foto_pai=row.get('foto_pai',''))
-            record.update(self._registration.details(self._items.get(row['referencia'],{})))
         return records
-
-    def _profile_select(self,p):
-        self._registration.select(p['id'])
-        return self._state()
-
-    def _profile_save(self,p):
-        self._registration.save_profile(p)
-        return self._state()
 
     def _layout_save(self,p):
         self._registration.save_layout(p)
@@ -382,28 +363,6 @@ class DesktopAPI:
 
     def _layout_select(self,p):
         self._registration.select_layout(p['id'])
-        return self._state()
-
-    def _product_details(self,p):
-        import copy
-        targets=self._selected(p)
-        if p.get('model'):
-            models={(family(r['referencia']),r['grupo']) for r in targets}
-            targets=[r for r in self._rows if (family(r['referencia']),r['grupo']) in models]
-        fields={f['id'] for f in self._registration.profile()['fields']}
-        changes=[]
-        for row in targets:
-            item=copy.deepcopy(self._items.get(row['referencia'],{}))
-            values=copy.deepcopy(self._registration.details(item));replace=bool(p.get('overwrite'))
-            if 'descricao' in p and (replace or not values['descricao']):values['descricao']=str(p['descricao']).strip()
-            for key,value in p.get('atributos',{}).items():
-                if key not in fields:raise ValueError('Atributo não encontrado no modelo ativo.')
-                if replace or not values['atributos'].get(key):values['atributos'][key]=str(value).strip()
-            self._registration.validate_values(values)
-            item.setdefault('cadastros',{})[self._registration.profile()['id']]=values
-            changes.append((row['referencia'],item))
-        for ref,item in changes:self._items[ref]=item
-        self._save()
         return self._state()
 
     def _choose_photo_folder(self,p):

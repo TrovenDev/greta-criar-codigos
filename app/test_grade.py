@@ -1,8 +1,10 @@
+import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
 from openpyxl import load_workbook
-from grade_export import GRADE_HEADERS, LEGACY_HEADERS, grade_rows, legacy_obs, legacy_rows
+from grade_export import GRADE_HEADERS, grade_rows
+from registration import Registration
 from stock_io import export_xlsx
 
 
@@ -69,15 +71,35 @@ class GradeTests(unittest.TestCase):
     def test_legacy_layout_matches_previous_grade_file(self):
         records = [dict(codigo='47095112W', produto='47-0951 12 W', grupo='47-ANEL MOISSANITERODIO', referencia='AR38850-MRS01-F23 W', peso=1, unidade='PC'),
                    dict(codigo='14095420Y102', produto='14-0954 20 Y102', grupo='14-ANEL', referencia='PLR37972-04-F83 BY102', peso=0.8, unidade='G')]
-        rows = legacy_rows(records, grade_rows(records)[:2])
-        self.assertEqual(len(LEGACY_HEADERS), 23)
-        self.assertEqual(rows[0][:17], ['47095112W', '47-0951 12 W', 'PV', '01', 'PC', '47', '0951', None, None, 'A',
+        registration = Registration(sqlite3.connect(':memory:'))
+        registration.select_layout('legacy')
+        headers, rows, name = registration.export(records)
+        self.assertEqual(len(headers), 23)
+        self.assertEqual(name, 'Grade Lançar · formato antigo')
+        self.assertEqual(rows[0][:17], ['47095112W', '47-0951 12 W', 'PV', '01', 'PC', '47', '0951', '', '', 'A',
                                         '470951', '12', 'W', '71132000', '23', 'AR38850-MRS01-F23 W', '001'])
         self.assertEqual(rows[0][17:22], ['', 1, 1, 'UN', 0.001])
         self.assertEqual(rows[1][11:13], ['20', 'Y102'])
-        self.assertEqual(len(rows), 2)
         self.assertEqual((rows[0][22], rows[1][22]), ('MOISSANITE', ''))
-        self.assertEqual(legacy_obs('27-ANEL FLOWER'), 'FLOWER')
+        self.assertEqual(len(rows), 2)
+
+    def test_renamed_headers_keep_sources_and_order(self):
+        registration = Registration(sqlite3.connect(':memory:'))
+        registration.save_layout(dict(name='Minha grade', parents=False, columns=[
+            dict(header='Modelo ERP', source='codigo'), dict(header='Fixo', source='fixed', value='001'), dict(header='Fator', source='erp.aaa_fatconv')]))
+        records = self.records()[:2]
+        headers, rows, _ = registration.export(records)
+        self.assertEqual(headers, ['Modelo ERP', 'Fixo', 'Fator'])
+        self.assertEqual(rows[0], ['27023112MCB', '001', 16.54])
+        self.assertEqual(len(rows), 2)
+
+    def test_default_layouts_can_be_renamed(self):
+        registration = Registration(sqlite3.connect(':memory:'))
+        columns = [dict(header='Código ERP', source='erp.aaa_codigo', value='')]
+        registration.save_layout(dict(id='standard', name='Grade do ERP', parents=True, columns=columns))
+        registration.select_layout('standard')
+        headers, _, name = registration.export(self.records())
+        self.assertEqual((headers, name), (['Código ERP'], 'Grade do ERP'))
 
     @unittest.skipUnless(TEMPLATE.exists(), 'Referência dmaaa.xlsx não fornecida neste ambiente')
     def test_matches_all_values_of_supplied_dmaaa(self):

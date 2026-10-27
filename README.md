@@ -172,15 +172,11 @@ scripts/              # Build do executável e instalador
 
 Um push sem uma nova tag não distribui código aos usuários. Versões já publicadas são preservadas.
 
-## Empresas, descrição e atributos
+## Formatos de exportação
 
-Em **Empresas e modelos**, personalize o cadastro com faixa etária, estilo, pedra, gênero, tema e novos atributos. Ofereça listas de opções, marque campos obrigatórios e mantenha descrições escritas separadas dos identificadores técnicos.
+Em **Formatos de exportação**, escolha como cada coluna da Grade Lançar será escrita. Os formatos prontos são **Grade Lançar · padrão ERP** (com pais) e **Grade Lançar · formato antigo** (somente variações, com tamanho, cor e categoria simplificada). Ambos podem ser renomeados.
 
-Importe essas informações da planilha ou preencha produtos individualmente e em lote. Os valores são salvos por modelo e preservados ao restaurar o trabalho. Os modelos compartilham a base e a sequência; não representam estoques independentes.
-
-Escolha **Grade Lançar · padrão ERP**, **Cadastro completo · com atributos** ou crie formatos com cabeçalhos, ordem, origens e valores fixos. Os formatos passam pelas mesmas validações dos produtos e dos pais. A geração de variações segue o fluxo atual de cor e tamanho.
-
-[Leia o guia de empresas e formatos de exportação](docs/modelos-empresa.md).
+Crie novos formatos com nomes de coluna, ordem, origens e valores fixos. Os formatos passam pelas mesmas validações dos produtos e dos pais, e a prévia mostra o resultado antes de salvar.
 
 ## Fotos dos produtos
 
