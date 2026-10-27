@@ -10,6 +10,13 @@ GRADE_HEADERS = (
     'aaa_peso', 'aaa_tipo', 'aaa_foto', 'aaa_obs', 'aaa_produtobase', 'aaa_integracao',
 )
 
+LEGACY_HEADERS = (
+    'aaa_codigo', 'aaa_descricao', 'aaa_tipo', 'aaa_almox', 'aaa_um', 'aaa_grupo', 'aaa_refbase',
+    'aaa_lingrade', 'aaa_colgrade', 'aaa_status', 'aaa_codgrade', 'aaa_codlingrade', 'aaa_codcolgrade',
+    'aaa_posipi', 'aaa_fornecedor', 'aaa_codrefforn', 'aaa_integracao', 'aaa_foto', 'aaa_pesogramas',
+    'aaa_fatconv', 'aaa_um2', 'aaa_peso', 'aaa_obs',
+)
+
 
 def grade_rows(records):
     children, parents = [], {}
@@ -41,3 +48,16 @@ def grade_rows(records):
     if any(code in codes for code in parents):
         raise ValueError('Um código de variação coincide com um código pai. Revise os códigos.')
     return children + list(parents.values())
+
+
+def legacy_rows(records, grade):
+    """Formato antigo: só variações, com tamanho e cor separados e a categoria em aaa_obs."""
+    rows = []
+    for r, child in zip(records, grade):
+        g = dict(zip(GRADE_HEADERS, child))
+        size, _, color = (product_parts(r['produto'])[3]).partition(' ')
+        rows.append([r['codigo'], g['aaa_descricao'], g['aaa_tipo'], '01', g['aaa_um'], g['aaa_grupo'], g['aaa_refbase'],
+                     None, None, g['aaa_status'], g['aaa_produtobase'], size, color, g['aaa_posipi'], g['aaa_fornecedor'],
+                     g['aaa_codrefforn'], '001', g['aaa_foto'], g['aaa_pesogramas'], g['aaa_fatconv'], g['aaa_um2'],
+                     g['aaa_peso'], r.get('grupo', '')])
+    return rows

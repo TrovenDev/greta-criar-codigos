@@ -4,7 +4,7 @@ import json
 import re
 from uuid import uuid4
 from criar_codigos import product_parts
-from grade_export import GRADE_HEADERS,grade_rows
+from grade_export import GRADE_HEADERS,LEGACY_HEADERS,grade_rows,legacy_rows
 from stock_io import header_key
 from product_guidance import compatible
 
@@ -80,13 +80,13 @@ class Registration:
         name=str(payload.get('name','')).strip()
         if not name:raise ValueError('Dê um nome ao formato de exportação.')
         identifier=payload.get('id') or uuid4().hex[:12]
-        if identifier in ('standard','complete'):raise ValueError('Crie uma cópia para personalizar um formato inicial.')
+        if identifier in ('standard','complete','legacy'):raise ValueError('Crie uma cópia para personalizar um formato inicial.')
         layout=dict(id=identifier,name=name,parents=bool(payload.get('parents',True)),columns=columns)
         profile['layouts']=[l for l in profile['layouts'] if l['id']!=identifier]+[layout]
         profile['layout']=identifier;self._save()
 
     def select_layout(self,identifier):
-        if identifier not in ('standard','complete') and not any(l['id']==identifier for l in self.profile()['layouts']):raise ValueError('Formato de exportação não encontrado.')
+        if identifier not in ('standard','complete','legacy') and not any(l['id']==identifier for l in self.profile()['layouts']):raise ValueError('Formato de exportação não encontrado.')
         self.profile()['layout']=identifier;self._save()
 
     def import_fields(self):
@@ -134,6 +134,7 @@ class Registration:
         grade=grade_rows(records)
         profile=self.profile();identifier=profile['layout']
         if identifier=='standard':return list(GRADE_HEADERS),grade,'Grade Lançar'
+        if identifier=='legacy':return list(LEGACY_HEADERS),legacy_rows(records,grade[:len(records)]),'Grade Lançar antiga'
         if identifier=='complete':
             columns=[dict(header=label,source=source) for source,label in BASE_SOURCES]+[dict(header=f['label'],source='attr.'+f['id']) for f in profile['fields']]
             layout=dict(name='Cadastro completo',parents=True,columns=columns)
