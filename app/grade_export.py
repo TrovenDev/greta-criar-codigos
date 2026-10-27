@@ -50,6 +50,11 @@ def grade_rows(records):
     return children + list(parents.values())
 
 
+def legacy_obs(grupo):
+    text = normal(grupo)
+    return next((name for name in ('MOISSANITE', 'FLOWER') if name in text), '')
+
+
 def legacy_rows(records, grade):
     """Formato antigo: só variações, com tamanho e cor separados e a categoria em aaa_obs."""
     rows = []
@@ -59,5 +64,5 @@ def legacy_rows(records, grade):
         rows.append([r['codigo'], g['aaa_descricao'], g['aaa_tipo'], '01', g['aaa_um'], g['aaa_grupo'], g['aaa_refbase'],
                      None, None, g['aaa_status'], g['aaa_produtobase'], size, color, g['aaa_posipi'], g['aaa_fornecedor'],
                      g['aaa_codrefforn'], '001', g['aaa_foto'], g['aaa_pesogramas'], g['aaa_fatconv'], g['aaa_um2'],
-                     g['aaa_peso'], r.get('grupo', '')])
+                     g['aaa_peso'], legacy_obs(r.get('grupo', ''))])
     return rows

@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from openpyxl import load_workbook
-from grade_export import GRADE_HEADERS, LEGACY_HEADERS, grade_rows, legacy_rows
+from grade_export import GRADE_HEADERS, LEGACY_HEADERS, grade_rows, legacy_obs, legacy_rows
 from stock_io import export_xlsx
 
 
@@ -76,6 +76,8 @@ class GradeTests(unittest.TestCase):
         self.assertEqual(rows[0][17:22], ['', 1, 1, 'UN', 0.001])
         self.assertEqual(rows[1][11:13], ['20', 'Y102'])
         self.assertEqual(len(rows), 2)
+        self.assertEqual((rows[0][22], rows[1][22]), ('MOISSANITE', ''))
+        self.assertEqual(legacy_obs('27-ANEL FLOWER'), 'FLOWER')
 
     @unittest.skipUnless(TEMPLATE.exists(), 'Referência dmaaa.xlsx não fornecida neste ambiente')
     def test_matches_all_values_of_supplied_dmaaa(self):
