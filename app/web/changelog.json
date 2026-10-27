@@ -1,5 +1,11 @@
 [
   {
+    "version": "9.1.1",
+    "date": "2026-10-27",
+    "title": "Formatos de exportação mais simples",
+    "body": "• Modelos de empresa e atributos removidos. Fica apenas a configuração de formatos de exportação.\n• Formatos padrão Grade TAM e COR e Configurador 01, ambos editáveis.\n• Nomes e ordem das colunas personalizáveis em qualquer formato, com valores fixos quando necessário.\n• Configurador 01 exporta somente variações, com tamanho, cor e moissanite ou flower em aaa_obs quando aplicável."
+  },
+  {
     "version": "9.1.0",
     "date": "2026-10-23",
     "title": "Empresas, atributos e formatos de exportação",

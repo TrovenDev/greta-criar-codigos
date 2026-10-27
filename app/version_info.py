@@ -1,2 +1,2 @@
-VERSION = '9.1.0'
+VERSION = '9.1.1'
 REPOSITORY = 'TrovenDev/greta-criar-codigos'
