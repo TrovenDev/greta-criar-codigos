@@ -67,7 +67,7 @@ class GradeTests(unittest.TestCase):
             b.close()
 
     def test_legacy_layout_matches_previous_grade_file(self):
-        records = [dict(codigo='47095112W', produto='47-0951 12 W', grupo='47-ANEL', referencia='AR38850-MRS01-F23 W', peso=1, unidade='PC'),
+        records = [dict(codigo='47095112W', produto='47-0951 12 W', grupo='47-ANEL MOISSANITERODIO', referencia='AR38850-MRS01-F23 W', peso=1, unidade='PC'),
                    dict(codigo='14095420Y102', produto='14-0954 20 Y102', grupo='14-ANEL', referencia='PLR37972-04-F83 BY102', peso=0.8, unidade='G')]
         rows = legacy_rows(records, grade_rows(records)[:2])
         self.assertEqual(len(LEGACY_HEADERS), 23)
