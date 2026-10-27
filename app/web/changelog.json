@@ -1,5 +1,11 @@
 [
   {
+    "version": "9.1.2",
+    "date": "2026-10-27",
+    "title": "Grade TAM e COR com TAM e COR nos pais",
+    "body": "• Grade TAM e COR inclui pais com TAM e COR em aaa_lingrade e aaa_colgrade.\n• Configurador 01 passa a ser o formato padrão de 19 colunas do ERP.\n• Formatos padrão atualizados uma vez em bases existentes; formatos personalizados são mantidos."
+  },
+  {
     "version": "9.1.1",
     "date": "2026-10-27",
     "title": "Formatos de exportação mais simples",
