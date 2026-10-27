@@ -1,3 +1,4 @@
+import json
 import sqlite3
 import tempfile
 import unittest
@@ -75,13 +76,25 @@ class GradeTests(unittest.TestCase):
         registration.select_layout('legacy')
         headers, rows, name = registration.export(records)
         self.assertEqual(len(headers), 23)
-        self.assertEqual(name, 'Configurador 01')
+        self.assertEqual(name, 'Grade TAM e COR')
         self.assertEqual(rows[0][:17], ['47095112W', '47-0951 12 W', 'PV', '01', 'PC', '47', '0951', '', '', 'A',
                                         '470951', '12', 'W', '71132000', '23', 'AR38850-MRS01-F23 W', '001'])
         self.assertEqual(rows[0][17:22], ['', 1, 1, 'UN', 0.001])
         self.assertEqual(rows[1][11:13], ['20', 'Y102'])
         self.assertEqual((rows[0][22], rows[1][22]), ('MOISSANITE', ''))
-        self.assertEqual(len(rows), 2)
+        self.assertEqual(len(rows), 4)
+        self.assertEqual(rows[0][7:9], ['', ''])
+        self.assertEqual(rows[2][7:9], ['TAM', 'COR'])
+
+    def test_saved_defaults_are_refreshed_once_and_custom_layouts_kept(self):
+        db = sqlite3.connect(':memory:')
+        old = dict(layout='standard', layouts=[dict(id='standard', name='Grade TAM e COR', parents=True, columns=[]),
+                                               dict(id='custom', name='Minha grade', parents=False, columns=[dict(header='Código', source='codigo', value='')])])
+        db.execute('CREATE TABLE registration_config (id INTEGER PRIMARY KEY CHECK(id=1), payload TEXT NOT NULL)')
+        db.execute('INSERT INTO registration_config VALUES(1,?)', (json.dumps(old),))
+        registration = Registration(db)
+        names = {l['id']: l['name'] for l in registration.config['layouts']}
+        self.assertEqual(names, {'standard': 'Configurador 01', 'legacy': 'Grade TAM e COR', 'custom': 'Minha grade'})
 
     def test_renamed_headers_keep_sources_and_order(self):
         registration = Registration(sqlite3.connect(':memory:'))

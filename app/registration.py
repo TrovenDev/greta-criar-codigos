@@ -8,18 +8,20 @@ from stock_io import header_key
 
 BASE_SOURCES=[('codigo','Código'),('referencia','Referência'),('produto','Identificador técnico'),
               ('peso','Peso'),('unidade','Unidade'),('grupo','Categoria / GP'),('tamanho','Tamanho'),
-              ('cor','Cor'),('obs','Moissanite ou flower'),('foto','Foto'),('pai','Código pai'),('tipo_linha','Tipo de linha')]
+              ('cor','Cor'),('obs','Moissanite ou flower'),('foto','Foto'),('pai','Código pai'),('tipo_linha','Tipo de linha'),
+              ('linha_grade','Linha de grade (só pai)'),('coluna_grade','Coluna de grade (só pai)')]
 LEGACY_COLUMNS=[('aaa_codigo','codigo',''),('aaa_descricao','erp.aaa_descricao',''),('aaa_tipo','erp.aaa_tipo',''),
     ('aaa_almox','fixed','01'),('aaa_um','erp.aaa_um',''),('aaa_grupo','erp.aaa_grupo',''),('aaa_refbase','erp.aaa_refbase',''),
-    ('aaa_lingrade','fixed',''),('aaa_colgrade','fixed',''),('aaa_status','erp.aaa_status',''),
+    ('aaa_lingrade','linha_grade',''),('aaa_colgrade','coluna_grade',''),('aaa_status','erp.aaa_status',''),
     ('aaa_codgrade','erp.aaa_produtobase',''),('aaa_codlingrade','tamanho',''),('aaa_codcolgrade','cor',''),
     ('aaa_posipi','erp.aaa_posipi',''),('aaa_fornecedor','erp.aaa_fornecedor',''),('aaa_codrefforn','erp.aaa_codrefforn',''),
     ('aaa_integracao','fixed','001'),('aaa_foto','erp.aaa_foto',''),('aaa_pesogramas','erp.aaa_pesogramas',''),
     ('aaa_fatconv','erp.aaa_fatconv',''),('aaa_um2','erp.aaa_um2',''),('aaa_peso','erp.aaa_peso',''),('aaa_obs','obs','')]
 DEFAULT_LAYOUTS=[
-    dict(id='standard',name='Grade TAM e COR',parents=True,columns=[dict(header=h,source='erp.'+h,value='') for h in GRADE_HEADERS]),
-    dict(id='legacy',name='Configurador 01',parents=False,columns=[dict(header=h,source=s,value=v) for h,s,v in LEGACY_COLUMNS]),
+    dict(id='standard',name='Configurador 01',parents=True,columns=[dict(header=h,source='erp.'+h,value='') for h in GRADE_HEADERS]),
+    dict(id='legacy',name='Grade TAM e COR',parents=True,columns=[dict(header=h,source=s,value=v) for h,s,v in LEGACY_COLUMNS]),
 ]
+DEFAULTS_VERSION=2
 
 
 def category_label(group):
@@ -45,11 +47,15 @@ class Registration:
             selected=profile.get('layout','standard')
         else:
             layouts=saved.get('layouts',[])
+            if saved.get('defaults')!=DEFAULTS_VERSION:
+                # Formatos padrão revisados: recoloca as definições atuais e mantém os formatos personalizados.
+                ids={d['id'] for d in DEFAULT_LAYOUTS}
+                layouts=copy.deepcopy(DEFAULT_LAYOUTS)+[l for l in layouts if l['id'] not in ids]
             known={l['id'] for l in layouts}
             layouts=[copy.deepcopy(d) for d in DEFAULT_LAYOUTS if d['id'] not in known]+layouts
             selected=saved.get('layout','standard')
         if selected not in {l['id'] for l in layouts}:selected='standard'
-        return dict(layout=selected,layouts=layouts)
+        return dict(layout=selected,layouts=layouts,defaults=DEFAULTS_VERSION)
 
     def _save(self):
         with self.db:self.db.execute('INSERT INTO registration_config VALUES(1,?) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload',(json.dumps(self.config,ensure_ascii=False),))
@@ -96,7 +102,8 @@ class Registration:
         for g in grade[len(records):]:
             members=by_parent[g[2]]
             values=dict(codigo=g[2],referencia=g[4],produto=f'{g[0]}-{g[1]}',peso=0,unidade=g[9],grupo=members[0]['grupo'],
-                        tamanho='',cor='',obs=category_label(members[0]['grupo']),foto=g[15] or '',pai='',tipo_linha='Pai')
+                        tamanho='',cor='',obs=category_label(members[0]['grupo']),foto=g[15] or '',pai='',tipo_linha='Pai',
+                        linha_grade='TAM',coluna_grade='COR')
             values.update({'erp.'+h:v for h,v in zip(GRADE_HEADERS,g)});parents.append(values)
         def cell(row,column):
             if column['source']=='fixed':return column.get('value','')
